@@ -54,7 +54,8 @@ abstract class AbstractCommand extends ContainerAwareCommand
         // dump each leaf if debug
         if (isset($formula[2]['debug']) ? $formula[2]['debug'] : $this->am->isDebug()) {
             foreach ($asset as $leaf) {
-                if ($this->checkAssetChanged($asset, $previously)) {
+                $leafName = sprintf('%s_%s', $name, $asset->getSourcePath());
+                if ($this->checkAssetChanged($asset, $leafName, $previously)) {
                     $this->doDump($leaf, $stdout);
                 }
             }
@@ -74,25 +75,20 @@ abstract class AbstractCommand extends ContainerAwareCommand
         $formula = $this->am->hasFormula($name) ? serialize($this->am->getFormula($name)) : null;
         $asset = $this->am->get($name);
 
-        return $this->checkAssetChanged($asset, $previously, $formula, $name);
+        return $this->checkAssetChanged($asset, $name, $previously, $formula);
     }
 
     /**
      * Checks if given asset has changed
      *
      * @param AssetInterface $asset
+     * @param null|string    $name
      * @param array          $previously
      * @param null|string    $formula
-     * @param null|string    $name
      * @return bool
      */
-    protected function checkAssetChanged(AssetInterface $asset, &$previously, $formula = null, $name = null)
+    protected function checkAssetChanged(AssetInterface $asset, $name, &$previously, $formula = null)
     {
-        // If no name is provided, let's use source path as unique id
-        if (null === $name) {
-            $name = $asset->getSourcePath();
-        }
-
         $combinations = VarUtils::getCombinations(
             $asset->getVars(),
             $this->getContainer()->getParameter('assetic.variables')
