@@ -101,6 +101,7 @@ class DumpCommand extends AbstractCommand
         $stdout->writeln(sprintf('Dumping all <comment>%s</comment> assets.', $input->getOption('env')));
         $stdout->writeln(sprintf('Debug mode is <comment>%s</comment>.', $this->am->isDebug() ? 'on' : 'off'));
         $stdout->writeln('');
+        $previous = array();
 
         if ($this->spork) {
             $batch = $this->spork->createBatchJob(
@@ -109,12 +110,12 @@ class DumpCommand extends AbstractCommand
             );
 
             $self = $this;
-            $batch->execute(function($name) use($self, $stdout) {
-                $self->dumpAsset($name, $stdout);
+            $batch->execute(function($name) use($self, $stdout, $previous) {
+                $self->dumpAsset($name, $stdout, $previous);
             });
         } else {
             foreach ($this->am->getNames() as $name) {
-                $this->dumpAsset($name, $stdout);
+                $this->dumpAsset($name, $stdout, $previous);
             }
         }
     }
